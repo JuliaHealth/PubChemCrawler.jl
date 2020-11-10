@@ -7,7 +7,7 @@ using Test
     cid = get_cid(;name="estriol")
     @test cid == 5756
     sleep(0.1)
-    df = CSV.File(query_substructure(;cid, output="CSV")) |> DataFrame
+    df = CSV.File(query_substructure(;cid=cid, output="CSV")) |> DataFrame
     @test !isempty(df)
     sleep(0.1)
     df2 = CSV.File(get_for_cids(df.CID[1:2])) |> DataFrame
