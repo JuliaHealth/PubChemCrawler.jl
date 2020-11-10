@@ -3,11 +3,17 @@ uuid = "30e472fa-2b12-4c0b-9705-07d174b7a4e1"
 authors = ["Tim Holy <tim.holy@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+
 [compat]
 julia = "1"
+HTTP = "0.8"
 
 [extras]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["CSV", "DataFrames", "Test"]
