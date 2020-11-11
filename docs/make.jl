@@ -18,4 +18,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/JuliaHealth/PubChemCrawler.jl",
+    push_preview=true,
 )
