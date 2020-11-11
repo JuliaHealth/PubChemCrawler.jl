@@ -2,16 +2,17 @@ const prolog = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/"
 
 """
     cid = get_cid(name="glucose")
-    cid = get_cid(smiles="glucose")
+    cid = get_cid(smiles="C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O")
 
 Return the PubChem **c**ompound **id**entification number for the specified compound.
 """
-function get_cid(; name=nothing, smiles=nothing)                   # inputs
+function get_cid(; name=nothing, smiles=nothing,                   # inputs
+                   kwargs...)
     input = "compound/"
     name !== nothing && (input *= "name/$(HTTP.escapeuri(name))/")
     smiles !== nothing && (input *= "smiles/$((smiles))/")
     url = prolog * input * "cids/TXT"
-    r = HTTP.request("GET", url)
+    r = HTTP.request("GET", url; kwargs...)
     return parse(Int, chomp(String(r.body)))
 end
 
@@ -51,7 +52,8 @@ will query for derivatives of [estriol](https://en.wikipedia.org/wiki/Estriol).
 """
 function query_substructure(;cid=nothing, smiles=nothing,                          # inputs
                              properties="MolecularFormula,MolecularWeight,XLogP,", # http://pubchemdocs.ncbi.nlm.nih.gov/pug-rest, "Compound Property Tables"
-                             output="CSV")
+                             output="CSV",
+                             kwargs...)
     input = "compound/fastsubstructure/"
     if cid !== nothing
         input *= "cid/$cid/"
@@ -62,7 +64,7 @@ function query_substructure(;cid=nothing, smiles=nothing,                       
     end
     props = canonicalize_properties("property/" * properties)
     url = prolog * input * props * output * "?StripHydrogen=true"
-    r = HTTP.request("GET", url)
+    r = HTTP.request("GET", url; kwargs...)
     return r.body
 end
 
@@ -114,7 +116,8 @@ julia> dct[:InformationList][:Information]
 function get_for_cids(cids;
                       properties=nothing,
                       xrefs=nothing,
-                      output="CSV")
+                      output="CSV",
+                      kwargs...)
     input = "compound/cid/"
     url = if xrefs === nothing
         props = canonicalize_properties("property/" * properties)
@@ -124,7 +127,7 @@ function get_for_cids(cids;
         xrefs = canonicalize_properties("xrefs/" * xrefs)
         url = prolog * input * xrefs * output
     end
-    r = HTTP.request("POST", url, ["Content-Type"=>"application/x-www-form-urlencoded"], "cid="*join(string.(cids), ","))
+    r = HTTP.request("POST", url, ["Content-Type"=>"application/x-www-form-urlencoded"], "cid="*join(string.(cids), ","); kwargs...)
     return r.body
 end
 
