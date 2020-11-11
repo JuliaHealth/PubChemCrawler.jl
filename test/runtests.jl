@@ -25,6 +25,7 @@ using Test
 
     # xrefs
     cids = [get_cid(name="cyclic guanosine monophosphate"), get_cid(name="aspirin")]
+    sleep(0.1)
     dct = JSON3.read(get_for_cids(cids; xrefs="RN,", output="JSON"))
     @test dct[:InformationList][:Information][1][:RN] == ["40732-48-7", "7665-99-8"]
     sleep(0.1)
