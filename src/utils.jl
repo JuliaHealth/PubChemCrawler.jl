@@ -7,7 +7,7 @@ Create a regular expression for detecting how many atoms of type `chemicalsymbol
 
 The formula for calcium bicarbonate is Ca(HCO3)2, i.e., C2CaH2O6.
 
-```julia
+```jldoctest; setup=(using PubChemCrawler)
 julia> match(atomregex("C"), "C2CaH2O6")
 RegexMatch("C2", 1="2")
 
@@ -25,7 +25,23 @@ Note that the regex for `"C"` does not match `"Ca"`.
 """
 atomregex(str) = Regex("$str(?![a-z])(\\d*)")
 
-function parse_formula(str)
+"""
+    atomcounts = parse_formula(str::AbstractString)
+
+Parse `str` as a chemical formula, return a list of `atom=>multiplicity` pairs.
+
+# Example
+
+```jldoctest; setup=(using PubChemCrawler)
+julia> parse_formula("C2CaH2O6")
+4-element Array{Pair{String,$Int},1}:
+  "C" => 2
+ "Ca" => 1
+  "H" => 2
+  "O" => 6
+```
+"""
+function parse_formula(str::AbstractString)
     prs = Pair{String,Int}[]
     idx, l = 1, length(str)
     while idx <= l
