@@ -18,7 +18,10 @@ const isci = parse(Bool, get(ENV, "CI", "false"))
     # substructure search
     sleep(2.0)
     df = CSV.File(query_substructure(;cid=cid, output="CSV", verbose=isci*3)) |> DataFrame
-    @test !isempty(df)
+    @test 27125 ∈ df.CID   # check that estetrol has estriol as a substructure
+    sleep(2.0)
+    df13 = CSV.File(query_substructure(;smarts="[r13]Br", output="CSV", verbose=isci*3)) |> DataFrame  # brominated 13-atom ring structures
+    @test 153064026 ∈ df13.CID
 
     # properties
     sleep(2.0)
