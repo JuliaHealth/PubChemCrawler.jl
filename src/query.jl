@@ -17,13 +17,14 @@ function get_cid(; name=nothing, smiles=nothing,                   # inputs
 end
 
 """
-    msg = query_substructure(;cid=nothing, smiles=nothing,                           # specifier for the substructure to search for
+    msg = query_substructure(;cid=nothing, smiles=nothing, smarts=nothing,           # specifier for the substructure to search for
                               properties="MolecularFormula,MolecularWeight,XLogP,",  # properties to retrieve
                               output="CSV")                                          # output format
 
-Perform a substructure search of the entire database. You can specify the target via its `cid`, the SMILES string, or its `name`.
+Perform a substructure search of the entire database. You can specify the target via its `cid`, the SMILES string, or a SMARTS string.
 Specify the `properties` you want to retrieve as a comma-separated list from among the choices in
 http://pubchemdocs.ncbi.nlm.nih.gov/pug-rest, "Compound Property Tables".
+Requesting more properties takes more time.
 
 The output is a `Vector{UInt8}`. For `output="CSV"`, a good choice to generate a manipulable result is
 `DataFrame(CSV.File(msg))` from the DataFrames and CSV packages, respectively.
@@ -50,17 +51,21 @@ julia> df = CSV.File(query_substructure(;cid)) |> DataFrame      # on Julia 1.0,
 
 will query for derivatives of [estriol](https://en.wikipedia.org/wiki/Estriol).
 """
-function query_substructure(;cid=nothing, smiles=nothing,                          # inputs
+function query_substructure(;cid=nothing, smiles=nothing, smarts=nothing,          # inputs
                              properties="MolecularFormula,MolecularWeight,XLogP,", # http://pubchemdocs.ncbi.nlm.nih.gov/pug-rest, "Compound Property Tables"
                              output="CSV",
                              kwargs...)
     input = "compound/fastsubstructure/"
     if cid !== nothing
+        (smiles === nothing && smarts === nothing) || throw(ArgumentError("only one of cid, smiles, or smarts can be specified"))
         input *= "cid/$cid/"
     elseif smiles !== nothing
+        smarts === nothing || throw(ArgumentError("only one of cid, smiles, or smarts can be specified"))
         input *= "smiles/$smiles/"
+    elseif smarts !== nothing
+        input *= "smarts/$smarts/"
     else
-        error("must specify input method, cid, smiles, or name")
+        throw(ArgumentError("one of cid, smiles, or smarts must be specified"))
     end
     props = canonicalize_properties("property/" * properties)
     url = prolog * input * props * output * "?StripHydrogen=true"
