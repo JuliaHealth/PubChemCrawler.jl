@@ -30,6 +30,8 @@ The output is a `Vector{UInt8}`. For `output="CSV"`, a good choice to generate a
 `DataFrame(CSV.File(msg))` from the DataFrames and CSV packages, respectively.
 Alternatively `String(msg)` will convert it to a string, which you can write to a file.
 
+For complex queries that risk timing out, consider [`query_substructure_pug`](@ref).
+
 # Example
 
 ```
