@@ -19,13 +19,7 @@ PubChem places significant limits on requests:
 - No more than 5 requests per second
 - No more than 400 requests per minute
 - No longer than 300 second running time per minute
-- Requests made via REST (the API targeted by this package) time out after 30s. There seems to be some caching, though, so sometimes it works to just resubmit the request.
-
-The latter constraint is worth a bit of thought. Substructure search requests can sometimes generate hundreds of thousands of hits,
-and asking for lots of different properties for many different compounds can prolong the request beyond the timeout limit.
-One recommendation is to pursue a "staged" approach, where you first request just a few simple properties
-(e.g., `MolecularFormula` rather than the full `SMILES` string) and use that information to narrow the list of candidates.
-With a smaller list, it becomes feasible to request more detailed information.
+- Requests made via REST time out after 30s. The PUG XML interface does not have this limitation. For substructure searches, [`query_substructure_pug`](@ref) is recommended.
 
 ## Getting started
 
@@ -53,12 +47,34 @@ julia> df = CSV.File(get_for_cids(cid; properties="MolecularFormula,MolecularWei
 
 You can query such properties for a list of `cids`.
 
+Finally, you can perform substructure searches. Let's retrieve up to 10 [bicyclic](https://en.wikipedia.org/wiki/Bicyclic_molecule) compounds:
+
+```julia
+julia> cids = query_substructure_pug(smarts = "[\$([*R2]([*R])([*R])([*R]))].[\$([*R2]([*R])([*R])([*R]))]", maxhits = 10)
+┌ Warning: maxhits was hit, results are partial
+└ @ PubChemCrawler ~/.julia/dev/PubChemCrawler/src/pugxml.jl:164
+10-element Vector{Int64}:
+ 135398658
+   5280795
+      5430
+      5143
+  54675779
+   5280961
+   5280804
+   5280793
+   5280343
+   3034034
+```
+
+Note that Julia (not this package) requires the SMARTS string characters `$` be escaped.
+
 ## API
 
 ### Queries
 
 ```@docs
 get_cid
+query_substructure_pug
 query_substructure
 get_for_cids
 ```

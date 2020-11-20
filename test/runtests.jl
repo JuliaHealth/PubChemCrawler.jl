@@ -22,9 +22,12 @@ const isci = parse(Bool, get(ENV, "CI", "false"))
     sleep(2.0)
     df13 = CSV.File(query_substructure(;smarts="[r13]Br", output="CSV", verbose=isci*3)) |> DataFrame  # brominated 13-atom ring structures
     @test 153064026 ∈ df13.CID
+    sleep(5.0)
+    cids13 = query_substructure_pug(;smarts="[r13]Br")  # brominated 13-atom ring structures, via PUG interface
+    @test 153064026 ∈ cids13
 
     # properties
-    sleep(2.0)
+    sleep(5.0)
     df2 = CSV.File(get_for_cids(df.CID[1:2]; properties="MolecularFormula", verbose=isci*3)) |> DataFrame
     @test df2.CID == df.CID[1:2]
     @test parse_formula(df[1,"MolecularFormula"]) == ["C"=>18, "H"=>24, "O"=>3]
