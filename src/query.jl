@@ -124,15 +124,20 @@ function get_for_cids(cids;
                       properties=nothing,
                       xrefs=nothing,
                       output="CSV",
+                      record_type=nothing,
                       kwargs...)
-    input = "compound/cid/"
-    url = if xrefs === nothing
-        props = canonicalize_properties("property/" * properties)
-        url = prolog * input * props * output
+    url = prolog * "compound/cid/"
+    if xrefs === nothing
+        if properties !== nothing
+            url *= canonicalize_properties("property/" * properties)
+        end
     else
         properties === nothing || error("cannot specify both xref and properties in a single query")
-        xrefs = canonicalize_properties("xrefs/" * xrefs)
-        url = prolog * input * xrefs * output
+        url *= canonicalize_properties("xrefs/" * xrefs)
+    end
+    url = joinpath(url, output)
+    if record_type !== nothing
+        url *= "?record_type=" * record_type
     end
     r = HTTP.request("POST", url, ["Content-Type"=>"application/x-www-form-urlencoded"], "cid="*join(string.(cids), ","); kwargs...)
     return r.body

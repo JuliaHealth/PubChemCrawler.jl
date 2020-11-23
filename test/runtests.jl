@@ -28,10 +28,21 @@ const isci = parse(Bool, get(ENV, "CI", "false"))
 
     # properties
     sleep(5.0)
+    smiles = String(get_for_cids(2244, properties="CanonicalSMILES", output="TXT"))
+    @test chomp(smiles) == "CC(=O)OC1=CC=CC=C1C(=O)O"
+    sleep(5.0)
     df2 = CSV.File(get_for_cids(df.CID[1:2]; properties="MolecularFormula", verbose=isci*3)) |> DataFrame
     @test df2.CID == df.CID[1:2]
     @test parse_formula(df[1,"MolecularFormula"]) == ["C"=>18, "H"=>24, "O"=>3]
     @test parse(Int, match(atomregex("C"), df[1,"MolecularFormula"]).captures[1]) == 18
+
+    # structure files (SDF)
+    sleep(5.0)
+    sdf = String(get_for_cids(2244, output="SDF", record_type="3d"))
+    @test occursin("PUBCHEM_MMFF94_PARTIAL_CHARGES", sdf)
+    line = split(sdf, '\n')[5]
+    flds = split(line)
+    @test parse(Float32, flds[1]) != 0 && parse(Float32, flds[2]) != 0 && parse(Float32, flds[3]) != 0
 
     # xrefs
     sleep(4.0)  # next one is two requests
