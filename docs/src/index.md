@@ -34,10 +34,19 @@ julia> cid = get_cid(smiles="CC(=O)OC1=CC=CC=C1C(=O)O")   # use the SMILES strin
 2244
 ```
 
-You can then retrieve a list of other properties:
+You can then retrieve individual properties:
 
 ```julia
-julia> df = CSV.File(get_for_cids(cid; properties="MolecularFormula,MolecularWeight,XLogP,IsomericSMILES", output="CSV")) |> DataFrame
+julia> smiles = chomp(String(get_for_cids(2244, properties="CanonicalSMILES", output="TXT")))
+"CC(=O)OC1=CC=CC=C1C(=O)O"
+```
+
+or a list of properties:
+
+```julia
+julia> using CSV, DataFrames
+
+julia> df = CSV.File(get_for_cids(2244; properties="MolecularFormula,MolecularWeight,XLogP,IsomericSMILES", output="CSV")) |> DataFrame
 1×5 DataFrame
 │ Row │ CID   │ MolecularFormula │ MolecularWeight │ XLogP   │ IsomericSMILES           │
 │     │ Int64 │ String           │ Float64         │ Float64 │ String                   │
@@ -45,7 +54,16 @@ julia> df = CSV.File(get_for_cids(cid; properties="MolecularFormula,MolecularWei
 │ 1   │ 2244  │ C9H8O4           │ 180.16          │ 1.2     │ CC(=O)OC1=CC=CC=C1C(=O)O │
 ```
 
-You can query such properties for a list of `cids`.
+You can query properties for a whole list of `cids`.
+
+You can also download structure data and save it to a file. This saves a 3d conformer for aspirin:
+
+```julia
+julia> open("/tmp/aspirin.sdf", "w") do io
+           write(io, get_for_cids(2244, output="SDF", record_type="3d"))
+       end
+3637
+```
 
 Finally, you can perform substructure searches. Let's retrieve up to 10 [bicyclic](https://en.wikipedia.org/wiki/Bicyclic_molecule) compounds:
 
