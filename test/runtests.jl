@@ -3,6 +3,7 @@ using CSV
 using JSON3
 using DataFrames
 using BrokenRecord: BrokenRecord, playback
+using HTTP    # needed to make BSON happy upon playback
 using Test
 
 const allrecordings = [joinpath("http_record", file) for file in [
@@ -44,7 +45,7 @@ BrokenRecord.configure!(; path="http_record")
     @test 153064026 ∈ df13.CID
     # The recommended approach for substructure searches is `query_substructure_pug`
     sleep(5.0 * get_recordings)
-    cids13 = playback(() -> query_substructure_pug(;smarts="[r13]Br"), "smarts_pug.bson")  # brominated 13-atom ring structures, via PUG interface
+    cids13 = playback(() -> query_substructure_pug(;smarts="[r13]Br", poll_interval=10*get_recordings), "smarts_pug.bson")  # brominated 13-atom ring structures, via PUG interface
     @test 153064026 ∈ cids13
 
     # properties
