@@ -6,6 +6,10 @@ using BrokenRecord: BrokenRecord, playback
 using HTTP    # needed to make BSON happy upon playback
 using Test
 
+## NOTE: the interactions with PubChem are recorded using BrokenRecord and stored in the test/http_record
+## directory. If you want to check that this still works with the "real" PubChem server, just delete
+## that directory and re-run the tests.
+
 const allrecordings = [joinpath("http_record", file) for file in [
     "estriol_cid.bson",
     "aspirin_cid_from_smiles.bson",
