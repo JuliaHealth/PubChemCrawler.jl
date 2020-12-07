@@ -49,7 +49,7 @@ julia> using CSV, DataFrames
 julia> df = CSV.File(get_for_cids(2244; properties="MolecularFormula,MolecularWeight,XLogP,IsomericSMILES", output="CSV")) |> DataFrame
 1×5 DataFrame
 │ Row │ CID   │ MolecularFormula │ MolecularWeight │ XLogP   │ IsomericSMILES           │
-│     │ Int64 │ String           │ Float64         │ Float64 │ String                   │
+│     │ $Int │ String           │ Float64         │ Float64 │ String                   │
 ├─────┼───────┼──────────────────┼─────────────────┼─────────┼──────────────────────────┤
 │ 1   │ 2244  │ C9H8O4           │ 180.16          │ 1.2     │ CC(=O)OC1=CC=CC=C1C(=O)O │
 ```
@@ -65,13 +65,13 @@ julia> open("/tmp/aspirin.sdf", "w") do io
 3637
 ```
 
-Finally, you can perform substructure searches. Let's retrieve up to 10 [bicyclic](https://en.wikipedia.org/wiki/Bicyclic_molecule) compounds:
+Finally, you can perform substructure searches. Let's retrieve up to 10 [bicyclic](https://en.wikipedia.org/wiki/Bicyclic_molecule) compounds using a [SMARTS](https://en.wikipedia.org/wiki/SMILES_arbitrary_target_specification) search:
 
 ```julia
 julia> cids = query_substructure_pug(smarts = "[\$([*R2]([*R])([*R])([*R]))].[\$([*R2]([*R])([*R])([*R]))]", maxhits = 10)
 ┌ Warning: maxhits was hit, results are partial
 └ @ PubChemCrawler ~/.julia/dev/PubChemCrawler/src/pugxml.jl:164
-10-element Vector{Int64}:
+10-element Vector{$Int}:
  135398658
    5280795
       5430

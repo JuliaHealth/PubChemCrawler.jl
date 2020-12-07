@@ -12,7 +12,7 @@ Retrieve a list of compounds containing a substructure specified via its `cid`, 
 julia> using PubChemCrawler
 
 julia> cids = query_substructure_pug(smarts="[r13]Br")   # query brominated 13-atom rings
-66-element Vector{Int64}:
+66-element Vector{$Int}:
   54533707
  153064026
  152829033
