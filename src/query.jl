@@ -30,8 +30,6 @@ The output is a `Vector{UInt8}`. For `output="CSV"`, a good choice to generate a
 `DataFrame(CSV.File(msg))` from the DataFrames and CSV packages, respectively.
 Alternatively `String(msg)` will convert it to a string, which you can write to a file.
 
-For complex queries that risk timing out, consider [`query_substructure_pug`](@ref).
-
 # Example
 
 ```
@@ -43,7 +41,7 @@ julia> cid = get_cid(name="estriol")
 julia> df = CSV.File(query_substructure(;cid)) |> DataFrame      # on Julia 1.0, use `(;cid=cid)`
 11607×4 DataFrame
 │ Row  │ CID       │ MolecularFormula │ MolecularWeight │ XLogP    │
-│      │ Int64     │ String           │ Float64         │ Float64? │
+│      │ $Int     │ String           │ Float64         │ Float64? │
 ├──────┼───────────┼──────────────────┼─────────────────┼──────────┤
 │ 1    │ 5756      │ C18H24O3         │ 288.4           │ 2.5      │
 │ 2    │ 5281904   │ C24H32O9         │ 464.5           │ 1.1      │
@@ -52,6 +50,9 @@ julia> df = CSV.File(query_substructure(;cid)) |> DataFrame      # on Julia 1.0,
 ```
 
 will query for derivatives of [estriol](https://en.wikipedia.org/wiki/Estriol).
+
+!!! info
+    For complex queries that risk timing out, consider [`query_substructure_pug`](@ref) in combination with [`get_for_cids`](@ref).
 """
 function query_substructure(;cid=nothing, smiles=nothing, smarts=nothing,          # inputs
                              properties="MolecularFormula,MolecularWeight,XLogP,", # http://pubchemdocs.ncbi.nlm.nih.gov/pug-rest, "Compound Property Tables"
@@ -76,29 +77,50 @@ function query_substructure(;cid=nothing, smiles=nothing, smarts=nothing,       
 end
 
 """
-    msg = get_for_cids(cids; properties=nothing, xrefs=nothing, output="CSV")
+    msg = get_for_cids(cids; properties|xrefs|cids_type|record_type, output="CSV")
 
-Retrieve the given `properties` or `xrefs` for a list of compounds specified by their `cids`.
+Retrieve the given `properties`, `xrefs`, CIDs, or records, respectively, for a list of compounds specified by their `cids`.
+The documentation for these traits can be found at http://pubchemdocs.ncbi.nlm.nih.gov/pug-rest; this URL will be referred to as
+PUGREST below.
 
-See [`query_substructure`](@ref) for information about the arguments and return value.
-The supported values for `xrefs` are available at https://pubchemdocs.ncbi.nlm.nih.gov/pug-rest under "XRefs".
+- `properties` include structural features like the molecular formula, number of undefined stereocenters, and so on.
+  Specify these as a comma-separated list from among the choices in PUGREST under "Compound Property Tables".
+- `xrefs` ("cross-references") include identifiers used by other databases, e.g., the CAS (Registry) number, PubMedID, and so on.
+  The supported values for `xrefs` are available at PUGREST under "XRefs".
+- `cids_type` is used to retrieve CIDs for compounds related to those specified in `cids`; see PUGREST under "SIDS / CIDS / AIDS".
+- `record_type` is used to retrieve data files and to specify options for these files, e.g., 2d or 3d SDF files.
+  See PUGREST under "Full-record Retrieval".
 
-# Example
+`output` specifies the output format. Not all options are applicable to all queries; for example, "CSV" is appropriate for
+`properties` queries but "SDF" might be used for a `record_type` query. See PUGREST, "Output".
+
+# Examples
 
 ```
-julia> using PubChem, JSON3
+julia> using PubChemCrawler, CSV, DataFrames, JSON3
 
 julia> cids = [get_cid(name="cyclic guanosine monophosphate"), get_cid(name="aspirin")]
-2-element Array{Int64,1}:
+2-element Array{$Int,1}:
  135398570
       2244
 
-julia> dct = JSON3.read(get_for_cids(cids; xrefs="RN,", output="JSON"))   # get the Registry Number(s) (CAS)
-JSON3.Object{Array{UInt8,1},Array{UInt64,1}} with 1 entry:
-  :InformationList => {…
+julia> CSV.File(get_for_cids(cids; properties="MolecularFormula,XLogP", output="CSV")) |> DataFrame
+2×3 DataFrame
+ Row │ CID        MolecularFormula  XLogP
+     │ $Int      String            Float64
+─────┼──────────────────────────────────────
+   1 │ 135398570  C10H12N5O7P          -3.4
+   2 │      2244  C9H8O4                1.2
+
+julia> open("/tmp/aspirin_3d.sdf", "w") do io    # save the 3d SDF file for aspirin (CID 2244)
+           write(io, get_for_cids(2244; record_type="3d", output="SDF"))
+       end
+4055
+
+julia> dct = JSON3.read(get_for_cids(cids; xrefs="RN,", output="JSON"));   # get the Registry Number(s) (CAS)
 
 julia> dct[:InformationList][:Information]
-2-element JSON3.Array{JSON3.Object,Array{UInt8,1},SubArray{UInt64,1,Array{UInt64,1},Tuple{UnitRange{Int64}},true}}:
+2-element JSON3.Array{JSON3.Object,Array{UInt8,1},SubArray{$UInt,1,Array{$UInt,1},Tuple{UnitRange{$Int}},true}}:
  {
    "CID": 135398570,
     "RN": [
@@ -123,19 +145,25 @@ julia> dct[:InformationList][:Information]
 function get_for_cids(cids;
                       properties=nothing,
                       xrefs=nothing,
-                      output="CSV",
+                      cids_type=nothing,
                       record_type=nothing,
+                      output="CSV",
                       kwargs...)
     url = prolog * "compound/cid/"
     if xrefs === nothing
         if properties !== nothing
             url *= canonicalize_properties("property/" * properties)
+        elseif cids_type !== nothing
+            url *= "cids/"
         end
     else
         properties === nothing || error("cannot specify both xref and properties in a single query")
         url *= canonicalize_properties("xrefs/" * xrefs)
     end
     url = joinpath(url, output)
+    if cids_type !== nothing
+        url *= "?cids_type=" * cids_type
+    end
     if record_type !== nothing
         url *= "?record_type=" * record_type
     end
