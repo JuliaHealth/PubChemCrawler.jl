@@ -123,19 +123,25 @@ julia> dct[:InformationList][:Information]
 function get_for_cids(cids;
                       properties=nothing,
                       xrefs=nothing,
-                      output="CSV",
+                      cids_type=nothing,
                       record_type=nothing,
+                      output="CSV",
                       kwargs...)
     url = prolog * "compound/cid/"
     if xrefs === nothing
         if properties !== nothing
             url *= canonicalize_properties("property/" * properties)
+        elseif cids_type !== nothing
+            url *= "cids/"
         end
     else
         properties === nothing || error("cannot specify both xref and properties in a single query")
         url *= canonicalize_properties("xrefs/" * xrefs)
     end
     url = joinpath(url, output)
+    if cids_type !== nothing
+        url *= "?cids_type=" * cids_type
+    end
     if record_type !== nothing
         url *= "?record_type=" * record_type
     end

@@ -70,6 +70,11 @@ BrokenRecord.configure!(; path="http_record")
     flds = split(line)
     @test parse(Float32, flds[1]) != 0 && parse(Float32, flds[2]) != 0 && parse(Float32, flds[3]) != 0
 
+    # parent compounds (sodium acetate is 517045, acetic acid is 176)
+    sleep(5.0 * get_recordings)
+    str = String(playback(() -> get_for_cids(517045; cids_type="parent", output="TXT"), "sodium_acetate_parent.bson"))
+    @test parse(Int, chomp(str)) == 176
+
     # xrefs
     sleep(4.0 * get_recordings)  # next one is two requests
     cids = [playback(() -> get_cid(name="cyclic guanosine monophosphate"), "cGMP_cid.bson")
