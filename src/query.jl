@@ -172,3 +172,31 @@ function get_for_cids(cids;
 end
 
 get_for_cids(cid::Int; kwargs...) = get_for_cids([cid]; kwargs...)
+
+
+"""
+    synonyms = get_synonyms(name="glucose")
+    synonyms = get_synonyms(smiles="C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O")
+    synonyms = get_synonyms(cid=5793)
+
+Return a list of substance or compound synonyms.
+"""
+function get_synonyms(; name=nothing, cid=nothing, smiles=nothing,
+         kwargs...)::Vector{String}
+    # inputs
+    input = "compound/"
+    if name !== nothing
+        (smiles === nothing && cid === nothing) || throw(ArgumentError("only one of name, cid, or smiles can be specified"))
+        input *= "name/$(HTTP.escapeuri(name))/"
+    elseif cid !== nothing
+        (smiles === nothing) || throw(ArgumentError("only one of name, cid, or smiles can be specified"))
+        input *= "cid/$cid/"
+    elseif smiles !== nothing
+        input *= "smiles/$smiles/"
+    else
+        throw(ArgumentError("one of name, cid, or smiles must be specified"))
+    end
+    url = prolog * input * "synonyms/TXT"
+    r = HTTP.request("GET", url; kwargs...)
+    return split(chomp(String(r.body)), "\n")
+end

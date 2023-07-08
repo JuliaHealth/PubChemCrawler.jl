@@ -22,7 +22,10 @@ const allrecordings = [joinpath("http_record", file) for file in [
     "cGMP_cid.bson",
     "aspirin_cid_from_name.bson",
     "CAS_as_json.bson",
-    "CAS_as_txt.bson"
+    "CAS_as_txt.bson",
+    "estriol_synonyms_from_name.bson",
+    "estriol_synonyms_from_cid.bson",
+    "estriol_synonyms_from_smiles.bson"
 ]]
 const get_recordings = !all(isfile, allrecordings)
 
@@ -46,11 +49,11 @@ BrokenRecord.configure!(; path="http_record")
     @test 27125 ∈ df.CID   # check that estetrol has estriol as a substructure
     sleep(2.0 * get_recordings)
     df13 = CSV.File(playback(() -> query_substructure(;smarts="[r13]Br", output="CSV"), "smarts.bson")) |> DataFrame  # brominated 13-atom ring structures
-    @test 153064026 ∈ df13.CID
+    @test 118303825 ∈ df13.CID
     # The recommended approach for substructure searches is `query_substructure_pug`
     sleep(5.0 * get_recordings)
     cids13 = playback(() -> query_substructure_pug(;smarts="[r13]Br", poll_interval=10*get_recordings), "smarts_pug.bson")  # brominated 13-atom ring structures, via PUG interface
-    @test 153064026 ∈ cids13
+    @test 118303825 ∈ cids13
 
     # properties
     sleep(5.0 * get_recordings)
@@ -84,4 +87,11 @@ BrokenRecord.configure!(; path="http_record")
     @test dct[:InformationList][:Information][1][:RN] == ["40732-48-7", "7665-99-8"]
     sleep(5.0 * get_recordings)
     @test chomp(String(playback(() -> get_for_cids(cids[1]; xrefs="RN,", output="TXT"), "CAS_as_txt.bson"))) == "40732-48-7\n7665-99-8"
+
+    #synonyms
+    @test "Trimesta" ∈ playback(() -> get_synonyms(name="estriol"), "estriol_synonyms_from_name.bson")
+    sleep(5.0 * get_recordings)
+    @test "Trimesta" ∈ playback(() -> get_synonyms(cid=cid_estriol), "estriol_synonyms_from_cid.bson")
+    sleep(5.0 * get_recordings)
+    @test "Trimesta" ∈ playback(() -> get_synonyms(smiles="C[C@]12CC[C@H]3[C@H]([C@@H]1C[C@H]([C@@H]2O)O)CCC4=C3C=CC(=C4)O"), "estriol_synonyms_from_smiles.bson")
 end
