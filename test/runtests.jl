@@ -46,11 +46,11 @@ BrokenRecord.configure!(; path="http_record")
     @test 27125 ∈ df.CID   # check that estetrol has estriol as a substructure
     sleep(2.0 * get_recordings)
     df13 = CSV.File(playback(() -> query_substructure(;smarts="[r13]Br", output="CSV"), "smarts.bson")) |> DataFrame  # brominated 13-atom ring structures
-    @test 153064026 ∈ df13.CID
+    @test 118303825 ∈ df13.CID
     # The recommended approach for substructure searches is `query_substructure_pug`
     sleep(5.0 * get_recordings)
     cids13 = playback(() -> query_substructure_pug(;smarts="[r13]Br", poll_interval=10*get_recordings), "smarts_pug.bson")  # brominated 13-atom ring structures, via PUG interface
-    @test 153064026 ∈ cids13
+    @test 118303825 ∈ cids13
 
     # properties
     sleep(5.0 * get_recordings)
