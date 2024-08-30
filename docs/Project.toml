@@ -3,4 +3,4 @@ Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 PubChemCrawler = "30e472fa-2b12-4c0b-9705-07d174b7a4e1"
 
 [compat]
-Documenter = "0.25"
+Documenter = "1"

@@ -10,7 +10,7 @@ LightXML = "9c8b4983-aa76-5018-a973-4c85ecc9e179"
 [compat]
 HTTP = "1"
 LightXML = "0.8, 0.9"
-julia = "1.6"
+julia = "1.10"
 
 [extras]
 BrokenRecord = "bdd55f5b-6e67-4da1-a080-6086e55655a0"
