@@ -34,7 +34,7 @@ Parse `str` as a chemical formula, return a list of `atom=>multiplicity` pairs.
 
 ```jldoctest; setup=(using PubChemCrawler)
 julia> parse_formula("C2CaH2O6")
-4-element Array{Pair{String,$Int},1}:
+4-element Vector{Pair{String, $Int}}:
   "C" => 2
  "Ca" => 1
   "H" => 2
