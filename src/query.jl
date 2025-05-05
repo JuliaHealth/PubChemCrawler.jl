@@ -174,9 +174,9 @@ end
 get_for_cids(cid::Int; kwargs...) = get_for_cids([cid]; kwargs...)
 
 """
-    sdfs = get_conformers_for_cid(cid, maxnum = Inf)
-Retrieve 3D records for up to `maxnum` conformers for a compound specified by its `cid`. Conformer ordering is such that the first
-"N" conformers selected represent the overall diversity of the conformer model for a compound. A description of PubChem's diverse 
+    sdfs = get_conformers_for_cid(cid, n = Inf)
+Retrieve 3D records for up to `n` conformers for a compound specified by its `cid`. Conformer ordering is such that the first
+"n" conformers selected represent the overall diversity of the conformer model for a compound. A description of PubChem's diverse 
 conformer ordering can be found at https://pubchem.ncbi.nlm.nih.gov/release3d.html. 
 # Example
 ````
@@ -188,7 +188,7 @@ julia> for (i,sdf) in enumerate(sdfs)   # save the 3d SDF files for each retriev
        end
 ````
 """
-function get_conformers_for_cid(cid, maxnum = Inf)
+function get_conformers_for_cid(cid, n = Inf)
     url = prolog * "compound/cid/" * string(cid) * "/conformers/XML"
     r = HTTP.request("GET", url)
     xdoc = parse_string(String(r.body)) 
@@ -202,7 +202,7 @@ function get_conformers_for_cid(cid, maxnum = Inf)
                 push!(confids,content(el))
             end
         end
-        if length(confids) >= maxnum
+        if length(confids) >= n
             break
         end
     end
