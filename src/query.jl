@@ -172,3 +172,45 @@ function get_for_cids(cids;
 end
 
 get_for_cids(cid::Int; kwargs...) = get_for_cids([cid]; kwargs...)
+
+"""
+    sdfs = get_conformers_for_cid(cid, maxnum = Inf)
+Retrieve 3D records for up to `maxnum` conformers for a compound specified by its `cid`. Conformer ordering is such that the first
+"N" conformers selected represent the overall diversity of the conformer model for a compound. A description of PubChem's diverse 
+conformer ordering can be found at https://pubchem.ncbi.nlm.nih.gov/release3d.html. 
+# Example
+````
+julia> sdfs = get_conformers_for_cid(get_cid(name="aspirin"), 5);   # get data for the first 5 conformers for aspirin
+julia> for (i,sdf) in enumerate(sdfs)   # save the 3d SDF files for each retrieved conformer
+           open("tmp/aspirin_conf"*string(i)*"_3d.sdf", "w") do io
+               write(io, sdf)
+           end
+       end
+````
+"""
+function get_conformers_for_cid(cid, maxnum = Inf)
+    url = prolog * "compound/cid/" * string(cid) * "/conformers/XML"
+    r = HTTP.request("GET", url)
+    xdoc = parse_string(String(r.body)) 
+    xroot = root(xdoc)
+    confids = []
+    for c in child_nodes(xroot)
+        if is_elementnode(c)
+            e = XMLElement(c) 
+            els = get_elements_by_tagname(e, "ConformerID")
+            for el in els
+                push!(confids,content(el))
+            end
+        end
+        if length(confids) >= maxnum
+            break
+        end
+    end
+    confsdfs = []
+    for confid in confids
+        confurl = prolog * "conformers/" * string(confid) * "/SDF"
+        confr = HTTP.request("GET", confurl)
+        push!(confsdfs, confr.body)
+    end
+    return confsdfs
+end
