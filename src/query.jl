@@ -198,12 +198,10 @@ function get_conformers_for_cid(cid, n = Inf)
         if is_elementnode(c)
             e = XMLElement(c) 
             els = get_elements_by_tagname(e, "ConformerID")
-            for el in els
+            for (i,el) in enumerate(els)
+                i > n && break
                 push!(confids,content(el))
             end
-        end
-        if length(confids) >= n
-            break
         end
     end
     confsdfs = []

@@ -70,6 +70,18 @@ BrokenRecord.configure!(; path="http_record")
     flds = split(line)
     @test parse(Float32, flds[1]) != 0 && parse(Float32, flds[2]) != 0 && parse(Float32, flds[3]) != 0
 
+    # conformer files (SDFs)
+    sleep(5.0 * get_recordings)
+    sdfs = String.(playback(() -> get_conformers_for_cid(2244, 5), "aspirin_conformers.bson"))
+    @test length(sdfs) == 5
+    @test length(unique(sdfs)) == 5
+    for sdf in sdfs
+        @test occursin("PUBCHEM_MMFF94_PARTIAL_CHARGES", sdf)
+        line = split(sdf, '\n')[5]
+        flds = split(line)
+        @test parse(Float32, flds[1]) != 0 && parse(Float32, flds[2]) != 0 && parse(Float32, flds[3]) != 0
+    end
+
     # parent compounds (sodium acetate is 517045, acetic acid is 176)
     sleep(5.0 * get_recordings)
     str = String(playback(() -> get_for_cids(517045; cids_type="parent", output="TXT"), "sodium_acetate_parent.bson"))
@@ -81,7 +93,7 @@ BrokenRecord.configure!(; path="http_record")
             playback(() -> get_cid(name="aspirin"), "aspirin_cid_from_name.bson")]
     sleep(5.0 * get_recordings)
     dct = JSON3.read(playback(() -> get_for_cids(cids; xrefs="RN,", output="JSON"), "CAS_as_json.bson"))
-    @test dct[:InformationList][:Information][1][:RN] == ["40732-48-7", "7665-99-8"]
+    @test dct[:InformationList][:Information][1][:RN] == ["231-641-6", "40732-48-7", "7665-99-8"]
     sleep(5.0 * get_recordings)
-    @test chomp(String(playback(() -> get_for_cids(cids[1]; xrefs="RN,", output="TXT"), "CAS_as_txt.bson"))) == "40732-48-7\n7665-99-8"
+    @test chomp(String(playback(() -> get_for_cids(cids[1]; xrefs="RN,", output="TXT"), "CAS_as_txt.bson"))) == "231-641-6\n40732-48-7\n7665-99-8"
 end
