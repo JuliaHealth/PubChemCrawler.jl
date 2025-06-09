@@ -1,20 +1,42 @@
 const prolog = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/"
 
 """
+    get_cdi, get_cids
     cid = get_cid(name="glucose")
-    cid = get_cid(smiles="C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O")
+    cids = get_cids(smiles="C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O")
 
-Return the PubChem **c**ompound **id**entification number for the specified compound.
+Return the PubChem **c**ompound **id**entification number(s) for the specified compound.
+
+    get_cid  returns a single identifier and fails if there are multiple results.
+    get_cids always returns a vector of identifiers
+
+Example:
+```
+julia> get_cids(name="2-nonenal")
+3-element Vector{Int64}:
+ 5283335
+   17166
+ 5354833
+
+julia> get_cid(name="2-nonenal")
+ERROR: ArgumentError: Collection has multiple elements, must contain exactly 1 element
+
+julia> get_cid(name="ethanol")
+702
+```
 """
-function get_cid(; name=nothing, smiles=nothing,                   # inputs
+function get_cids(; name=nothing, smiles=nothing,                   # inputs
                    kwargs...)
     input = "compound/"
     name !== nothing && (input *= "name/$(HTTP.escapeuri(name))/")
     smiles !== nothing && (input *= "smiles/$((smiles))/")
     url = prolog * input * "cids/TXT"
     r = HTTP.request("GET", url; kwargs...)
-    return parse(Int, chomp(String(r.body)))
+    return parse.(Int,split(chomp(String(r.body)), "\n"))
 end
+get_cid = only ∘ get_cids
+
+@doc (@doc get_cids) get_cid
 
 """
     msg = query_substructure(;cid=nothing, smiles=nothing, smarts=nothing,           # specifier for the substructure to search for
