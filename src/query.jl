@@ -4,6 +4,7 @@ const prolog = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/"
     get_cdi, get_cids
     cid = get_cid(name="glucose")
     cids = get_cids(smiles="C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O")
+    cid = get_cid(cas_number="64-17-5")
 
 Return the PubChem **c**ompound **id**entification number(s) for the specified compound.
 
@@ -23,13 +24,22 @@ ERROR: ArgumentError: Collection has multiple elements, must contain exactly 1 e
 
 julia> get_cid(name="ethanol")
 702
+
+julia> get_cids(cas_number="50-78-2")
+4-element Vector{Int64}:
+     2244
+    67252
+  3434975
+ 12280114
+
 ```
 """
-function get_cids(; name=nothing, smiles=nothing,                   # inputs
+function get_cids(; name=nothing, smiles=nothing, cas_number=nothing,                  # inputs
                    kwargs...)
     input = "compound/"
     name !== nothing && (input *= "name/$(HTTP.escapeuri(name))/")
     smiles !== nothing && (input *= "smiles/$((smiles))/")
+    cas_number !== nothing && (input *= "xref/RN/$(cas_number)/")
     url = prolog * input * "cids/TXT"
     r = HTTP.request("GET", url; kwargs...)
     return parse.(Int,split(chomp(String(r.body)), "\n"))
