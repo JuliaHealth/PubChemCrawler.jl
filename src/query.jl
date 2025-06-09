@@ -3,15 +3,15 @@ const prolog = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/"
 """
     get_cdi, get_cids
     cid = get_cid(name="glucose")
-    cids = get_cids(smiles="C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O")
-    cid = get_cid(cas_number="64-17-5")
+    cid = get_cid(smiles="C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O")
+    cids = get_cids(cas_number="50-99-7")
 
 Return the PubChem **c**ompound **id**entification number(s) for the specified compound.
 
     get_cid  returns a single identifier and fails if there are multiple results.
     get_cids always returns a vector of identifiers
 
-Example:
+Examples:
 ```
 julia> get_cids(name="2-nonenal")
 3-element Vector{Int64}:
