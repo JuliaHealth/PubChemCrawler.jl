@@ -8,8 +8,8 @@ const prolog = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/"
 
 Return the PubChem **c**ompound **id**entification number(s) for the specified compound.
 
-    get_cid  returns a single identifier and fails if there are multiple results.
-    get_cids always returns a vector of identifiers
+- `get_cid` returns a single identifier and fails if there are multiple results.
+- `get_cids` returns a vector of identifiers, containing all the identifiers that match
 
 Examples:
 ```
