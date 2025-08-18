@@ -1,7 +1,7 @@
 const prolog = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/"
 
 """
-    get_cdi, get_cids
+    get_cid, get_cids
     cid = get_cid(name="glucose")
     cid = get_cid(smiles="C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O")
     cids = get_cids(cas_number="50-99-7")
