@@ -42,7 +42,7 @@ function get_cids(; name=nothing, smiles=nothing, cas_number=nothing,           
     cas_number !== nothing && (input *= "xref/RN/$(cas_number)/")
     url = prolog * input * "cids/TXT"
     r = HTTP.request("GET", url; kwargs...)
-    return parse.(Int,split(chomp(String(r.body)), "\n"))
+    return parse.(Int,split(chomp(String(r.body)), '\n'))
 end
 get_cid = only ∘ get_cids
 
