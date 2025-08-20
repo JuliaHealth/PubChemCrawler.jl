@@ -81,7 +81,7 @@ BrokenRecord.configure!(; path="http_record")
             playback(() -> get_cid(name="aspirin"), "aspirin_cid_from_name.bson")]
     sleep(5.0 * get_recordings)
     dct = JSON3.read(playback(() -> get_for_cids(cids; xrefs="RN,", output="JSON"), "CAS_as_json.bson"))
-    @test dct[:InformationList][:Information][1][:RN] == ["40732-48-7", "7665-99-8"]
+    @test dct[:InformationList][:Information][1][:RN] ==  ["231-641-6", "40732-48-7", "7665-99-8"]
     sleep(5.0 * get_recordings)
-    @test chomp(String(playback(() -> get_for_cids(cids[1]; xrefs="RN,", output="TXT"), "CAS_as_txt.bson"))) == "40732-48-7\n7665-99-8"
+    @test chomp(String(playback(() -> get_for_cids(cids[1]; xrefs="RN,", output="TXT"), "CAS_as_txt.bson"))) == "231-641-6\n40732-48-7\n7665-99-8"
 end
