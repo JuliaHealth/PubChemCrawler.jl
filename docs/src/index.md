@@ -95,6 +95,7 @@ get_cid
 query_substructure_pug
 query_substructure
 get_for_cids
+pug
 ```
 
 ### Utilities

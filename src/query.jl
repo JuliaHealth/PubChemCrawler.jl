@@ -193,6 +193,7 @@ Other keyword arguments are passed on to `HTTP.request`.
 
 Examples:
 
+```
 julia> pug(:compound, :name, "ethanol", :cids, :txt, silent = false, return_text = true)
 [ Info: https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/ethanol/cids/txt
 "702"
@@ -206,7 +207,7 @@ julia> pug(:compound, :smiles, "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O", :ci
 
 julia> pug(:compound, :cid, 708, :txt, return_text = true, status_exception = false)
 "Status: 400\nCode: PUGREST.BadRequest\nMessage: Invalid output format\nDetail: Full-record output format must be one of ASNT/B, XML, JSON(P), SDF, or PNG"
-
+```
 """
 function pug(args...; silent = true, escape_args = true, return_text = false, status_exception = true, kwargs...)
     args =  replace.(string.(args), r"/$" => "", r"^/" => "")
