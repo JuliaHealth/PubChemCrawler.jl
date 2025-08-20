@@ -8,7 +8,7 @@ Return all the PubChem **c**ompound **id**entification numbers for the specified
 - `get_cid` returns a single identifier and fails if there are multiple results.
 - `get_cids` returns a vector of identifiers, containing all the identifiers that match
 
-Queries on `cas_number` often returns multiple `cids`.
+Queries on `cas_number` often return multiple `cids`.
 
 Examples:
 ```
