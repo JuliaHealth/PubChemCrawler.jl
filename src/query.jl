@@ -174,7 +174,7 @@ end
 get_for_cids(cid::Int; kwargs...) = get_for_cids([cid]; kwargs...)
 
 """
-   `pug(args...; silent = false, escape_args = true, return_text = true, status_exception = false, kwargs...)`
+   `pug(args...; silent = true, escape_args = true, return_text = true, status_exception = false, kwargs...)`
 
 Generate a PUG endpoint and call it. The details about PUG endpoints are described here: <https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest>
 
@@ -183,33 +183,30 @@ Keyword arguments:
 - `escape_args = true`, URL encodes each argument before generating the endpoint.
 Setting this false is useful when copy-pasting an existing PUG endpoint, e.g. from documentation.
 
-- `silent = true` will suppress printing the pug URL called.
+- `silent = false` print the pug URL called.
 
+-  `return_text = true`, call `String` on the output to return a string rather than a byte vector.
 
-This function uses more ergonomic defaults that the rest of the package:
-
--  `return_text = true`, calls `String` on the output to return a string rather than a byte vector.
--  `status_exception = false`, tells HTTP.jl to not throw an exception on return codes >= 300.
+-  `status_exception = false`, tell HTTP.jl to not throw an exception on return codes >= 300.
 
 Examples:
 
-julia> pug(:compound, :name, "d-(+)-Lactose monohydrate", :cids, :txt)
-[ Info: https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/d-%28%2B%29-Lactose%20monohydrate/cids/txt
-"23623845"
+julia> pug(:compound, :name, "ethanol", :cids, :txt, silent = false, return_text = true)
+[ Info: https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/ethanol/cids/txt
+"702"
 
-julia> pug("compound/cid/2244", :cids, :txt, escape_args = false)
+julia> pug("compound/cid/2244", :cids, :txt, escape_args = false, silent = false, return_text = true)
 [ Info: https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2244/cids/txt
 "2244"
 
-julia> pug(:compound, :smiles, "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O", :cids, :txt, silent = true)
+julia> pug(:compound, :smiles, "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O", :cids, :txt, silent = true, return_text = true)
 "5793"
 
-julia> pug(:compound, :cid, 708, :txt)
-[ Info: https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/708/txt
+julia> pug(:compound, :cid, 708, :txt, return_text = true, status_exception = false)
 "Status: 400\nCode: PUGREST.BadRequest\nMessage: Invalid output format\nDetail: Full-record output format must be one of ASNT/B, XML, JSON(P), SDF, or PNG"
 
 """
-function pug(args...; silent = false, escape_args = true, return_text = true, status_exception = false, kwargs...)
+function pug(args...; silent = true, escape_args = true, return_text = false, status_exception = true, kwargs...)
     args =  replace.(string.(args), r"/$" => "", r"^/" => "")
     escape_args && (args = HTTP.escapeuri.(args))
     pug_string = join(string.(args), "/")
