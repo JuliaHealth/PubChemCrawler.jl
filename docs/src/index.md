@@ -56,7 +56,7 @@ julia> df = CSV.File(get_for_cids(2244; properties="MolecularFormula,MolecularWe
 
 You can query properties for a whole list of `cids`.
 
-If you query returns multiple `cids`, you need to use `get_cids`:
+If your query returns multiple `cids`, you need to use `get_cids`:
 
 ``` julia
 julia> cids = get_cids(cas_number="50-78-2")
