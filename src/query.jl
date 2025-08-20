@@ -189,6 +189,8 @@ Setting this false is useful when copy-pasting an existing PUG endpoint, e.g. fr
 
 -  `status_exception = false`, tell HTTP.jl to not throw an exception on return codes >= 300.
 
+Other keyword arguments are passed on to `HTTP.request`.
+
 Examples:
 
 julia> pug(:compound, :name, "ethanol", :cids, :txt, silent = false, return_text = true)
@@ -199,7 +201,7 @@ julia> pug("compound/cid/2244", :cids, :txt, escape_args = false, silent = false
 [ Info: https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2244/cids/txt
 "2244"
 
-julia> pug(:compound, :smiles, "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O", :cids, :txt, silent = true, return_text = true)
+julia> pug(:compound, :smiles, "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O", :cids, :txt, return_text = true)
 "5793"
 
 julia> pug(:compound, :cid, 708, :txt, return_text = true, status_exception = false)
