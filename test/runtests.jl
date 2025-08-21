@@ -84,4 +84,8 @@ BrokenRecord.configure!(; path="http_record")
     @test dct[:InformationList][:Information][1][:RN] ==  ["231-641-6", "40732-48-7", "7665-99-8"]
     sleep(5.0 * get_recordings)
     @test chomp(String(playback(() -> get_for_cids(cids[1]; xrefs="RN,", output="TXT"), "CAS_as_txt.bson"))) == "231-641-6\n40732-48-7\n7665-99-8"
+
+    # pug
+    cid =  playback(() -> pug(:compound, :name, "ethanol", :cids, :txt, return_text = true), "ethanol_pug.bson")
+    @test cid == "702"
 end
