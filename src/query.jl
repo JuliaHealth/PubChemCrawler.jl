@@ -1,20 +1,62 @@
 const prolog = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/"
 
 """
-    cid = get_cid(name="glucose")
-    cid = get_cid(smiles="C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O")
+    get_cids(; name=nothing, smiles=nothing, cas_number=nothing,kwargs...)
 
-Return the PubChem **c**ompound **id**entification number for the specified compound.
+Return all the PubChem **c**ompound **id**entification numbers for the specified compound.
+
+- `get_cid` returns a single identifier and fails if there are multiple results.
+- `get_cids` returns a vector of identifiers, containing all the identifiers that match
+
+Queries on `cas_number` often return multiple `cids`.
+
+Examples:
+```
+julia> get_cids(name="2-nonenal")
+3-element Vector{Int64}:
+ 5283335
+   17166
+ 5354833
+
+julia> get_cid(name="2-nonenal")
+ERROR: ArgumentError: Collection has multiple elements, must contain exactly 1 element
+
+julia> get_cids(cas_number="50-78-2")
+4-element Vector{Int64}:
+     2244
+    67252
+  3434975
+ 12280114
+
+```
 """
-function get_cid(; name=nothing, smiles=nothing,                   # inputs
+function get_cids(; name=nothing, smiles=nothing, cas_number=nothing,
                    kwargs...)
     input = "compound/"
     name !== nothing && (input *= "name/$(HTTP.escapeuri(name))/")
     smiles !== nothing && (input *= "smiles/$((smiles))/")
+    cas_number !== nothing && (input *= "xref/RN/$(cas_number)/")
     url = prolog * input * "cids/TXT"
     r = HTTP.request("GET", url; kwargs...)
-    return parse(Int, chomp(String(r.body)))
+    return parse.(Int,split(chomp(String(r.body)), '\n'))
 end
+
+"""
+    get_cid(; name=nothing, smiles=nothing, cas_number=nothing, kwargs...)
+
+Return the PubChem **c**ompound **id**entification number for the specified compound.
+
+Examples:
+```
+julia> cid = get_cid(name="glucose")
+5793
+
+julia> cid = get_cid(smiles="C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O")
+5793
+```
+"""
+get_cid = only ∘ get_cids
+
 
 """
     msg = query_substructure(;cid=nothing, smiles=nothing, smarts=nothing,           # specifier for the substructure to search for

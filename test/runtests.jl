@@ -39,6 +39,8 @@ BrokenRecord.configure!(; path="http_record")
     @test cid_estriol == 5756
     sleep(2.0 * get_recordings)
     @test playback(() -> get_cid(smiles="CC(=O)OC1=CC=CC=C1C(=O)O"), "aspirin_cid_from_smiles.bson") == 2244
+    cids_aspirin = playback(() -> get_cids(;cas_number="50-78-2"), "aspirin_cids.bson")
+    @test cids_aspirin == [2244, 67252, 3434975, 12280114]
 
     # substructure search
     sleep(2.0 * get_recordings)
