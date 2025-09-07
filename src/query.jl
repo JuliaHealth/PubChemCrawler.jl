@@ -1,20 +1,62 @@
 const prolog = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/"
 
 """
-    cid = get_cid(name="glucose")
-    cid = get_cid(smiles="C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O")
+    get_cids(; name=nothing, smiles=nothing, cas_number=nothing,kwargs...)
 
-Return the PubChem **c**ompound **id**entification number for the specified compound.
+Return all the PubChem **c**ompound **id**entification numbers for the specified compound.
+
+- `get_cid` returns a single identifier and fails if there are multiple results.
+- `get_cids` returns a vector of identifiers, containing all the identifiers that match
+
+Queries on `cas_number` often return multiple `cids`.
+
+Examples:
+```
+julia> get_cids(name="2-nonenal")
+3-element Vector{Int64}:
+ 5283335
+   17166
+ 5354833
+
+julia> get_cid(name="2-nonenal")
+ERROR: ArgumentError: Collection has multiple elements, must contain exactly 1 element
+
+julia> get_cids(cas_number="50-78-2")
+4-element Vector{Int64}:
+     2244
+    67252
+  3434975
+ 12280114
+
+```
 """
-function get_cid(; name=nothing, smiles=nothing,                   # inputs
+function get_cids(; name=nothing, smiles=nothing, cas_number=nothing,
                    kwargs...)
     input = "compound/"
     name !== nothing && (input *= "name/$(HTTP.escapeuri(name))/")
     smiles !== nothing && (input *= "smiles/$((smiles))/")
+    cas_number !== nothing && (input *= "xref/RN/$(cas_number)/")
     url = prolog * input * "cids/TXT"
     r = HTTP.request("GET", url; kwargs...)
-    return parse(Int, chomp(String(r.body)))
+    return parse.(Int,split(chomp(String(r.body)), '\n'))
 end
+
+"""
+    get_cid(; name=nothing, smiles=nothing, cas_number=nothing, kwargs...)
+
+Return the PubChem **c**ompound **id**entification number for the specified compound.
+
+Examples:
+```
+julia> cid = get_cid(name="glucose")
+5793
+
+julia> cid = get_cid(smiles="C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O")
+5793
+```
+"""
+get_cid = only ∘ get_cids
+
 
 """
     msg = query_substructure(;cid=nothing, smiles=nothing, smarts=nothing,           # specifier for the substructure to search for
@@ -173,6 +215,52 @@ end
 
 get_for_cids(cid::Int; kwargs...) = get_for_cids([cid]; kwargs...)
 
+"""
+   `pug(args...; silent = true, escape_args = true, return_text = true, status_exception = false, kwargs...)`
+
+Generate a PUG endpoint and call it. The details about PUG endpoints are described here: <https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest>
+
+Keyword arguments:
+
+- `escape_args = true`, URL encodes each argument before generating the endpoint.
+Setting this false is useful when copy-pasting an existing PUG endpoint, e.g. from documentation.
+
+- `silent = false` print the pug URL called.
+
+-  `return_text = true`, call `String` on the output to return a string rather than a byte vector.
+
+-  `status_exception = false`, tell HTTP.jl to not throw an exception on return codes >= 300.
+
+Other keyword arguments are passed on to `HTTP.request`.
+
+Examples:
+
+```
+julia> pug(:compound, :name, "ethanol", :cids, :txt, silent = false, return_text = true)
+[ Info: https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/ethanol/cids/txt
+"702"
+
+julia> pug("compound/cid/2244", :cids, :txt, escape_args = false, silent = false, return_text = true)
+[ Info: https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/2244/cids/txt
+"2244"
+
+julia> pug(:compound, :smiles, "C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O", :cids, :txt, return_text = true)
+"5793"
+
+julia> pug(:compound, :cid, 708, :txt, return_text = true, status_exception = false)
+"Status: 400\nCode: PUGREST.BadRequest\nMessage: Invalid output format\nDetail: Full-record output format must be one of ASNT/B, XML, JSON(P), SDF, or PNG"
+```
+"""
+function pug(args...; silent = true, escape_args = true, return_text = false, status_exception = true, kwargs...)
+    args =  replace.(string.(args), r"/$" => "", r"^/" => "")
+    escape_args && (args = HTTP.escapeuri.(args))
+    pug_string = join(string.(args), "/")
+    url = prolog * pug_string
+    silent || @info url
+    r = HTTP.request("GET", url; status_exception, kwargs...)
+    b = return_text ? chomp(String(r.body)) : r.body
+    return b
+end
 
 """
     synonyms = get_synonyms(name="glucose")

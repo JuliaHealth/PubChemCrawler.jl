@@ -1,16 +1,16 @@
 name = "PubChemCrawler"
 uuid = "30e472fa-2b12-4c0b-9705-07d174b7a4e1"
 authors = ["Tim Holy <tim.holy@gmail.com> and contributors"]
-version = "1.1.0"
+version = "1.3.0"
 
 [deps]
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 LightXML = "9c8b4983-aa76-5018-a973-4c85ecc9e179"
 
 [compat]
-HTTP = "0.8, 0.9, 1.9.8"
+HTTP = "1"
 LightXML = "0.8, 0.9"
-julia = "1"
+julia = "1.10"
 
 [extras]
 BrokenRecord = "bdd55f5b-6e67-4da1-a080-6086e55655a0"

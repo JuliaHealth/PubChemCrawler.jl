@@ -26,6 +26,7 @@ const allrecordings = [joinpath("http_record", file) for file in [
     "estriol_synonyms_from_name.bson",
     "estriol_synonyms_from_cid.bson",
     "estriol_synonyms_from_smiles.bson"
+                           
 ]]
 const get_recordings = !all(isfile, allrecordings)
 
@@ -42,6 +43,8 @@ BrokenRecord.configure!(; path="http_record")
     @test cid_estriol == 5756
     sleep(2.0 * get_recordings)
     @test playback(() -> get_cid(smiles="CC(=O)OC1=CC=CC=C1C(=O)O"), "aspirin_cid_from_smiles.bson") == 2244
+    cids_aspirin = playback(() -> get_cids(;cas_number="50-78-2"), "aspirin_cids.bson")
+    @test cids_aspirin == [2244, 67252, 3434975, 12280114]
 
     # substructure search
     sleep(2.0 * get_recordings)
@@ -84,9 +87,13 @@ BrokenRecord.configure!(; path="http_record")
             playback(() -> get_cid(name="aspirin"), "aspirin_cid_from_name.bson")]
     sleep(5.0 * get_recordings)
     dct = JSON3.read(playback(() -> get_for_cids(cids; xrefs="RN,", output="JSON"), "CAS_as_json.bson"))
-    @test dct[:InformationList][:Information][1][:RN] == ["40732-48-7", "7665-99-8"]
+    @test dct[:InformationList][:Information][1][:RN] ==  ["231-641-6", "40732-48-7", "7665-99-8"]
     sleep(5.0 * get_recordings)
-    @test chomp(String(playback(() -> get_for_cids(cids[1]; xrefs="RN,", output="TXT"), "CAS_as_txt.bson"))) == "40732-48-7\n7665-99-8"
+    @test chomp(String(playback(() -> get_for_cids(cids[1]; xrefs="RN,", output="TXT"), "CAS_as_txt.bson"))) == "231-641-6\n40732-48-7\n7665-99-8"
+
+    # pug
+    cid =  playback(() -> pug(:compound, :name, "ethanol", :cids, :txt, return_text = true), "ethanol_pug.bson")
+    @test cid == "702"
 
     #synonyms
     @test "Trimesta" ∈ playback(() -> get_synonyms(name="estriol"), "estriol_synonyms_from_name.bson")
