@@ -139,7 +139,7 @@ PUGREST below.
 # Examples
 
 ```
-julia> using PubChemCrawler, CSV, DataFrames, JSON3
+julia> using PubChemCrawler, CSV, DataFrames, JSON
 
 julia> cids = [get_cid(name="cyclic guanosine monophosphate"), get_cid(name="aspirin")]
 2-element Array{$Int,1}:
@@ -159,19 +159,12 @@ julia> open("/tmp/aspirin_3d.sdf", "w") do io    # save the 3d SDF file for aspi
        end
 4055
 
-julia> dct = JSON3.read(get_for_cids(cids; xrefs="RN,", output="JSON"));   # get the Registry Number(s) (CAS)
+julia> dct = JSON.parse(String(get_for_cids(cids; xrefs="RN,", output="JSON")));   # get the Registry Number(s) (CAS)
 
-julia> dct[:InformationList][:Information]
-2-element JSON3.Array{JSON3.Object,Array{UInt8,1},SubArray{$UInt,1,Array{$UInt,1},Tuple{UnitRange{$Int}},true}}:
- {
-   "CID": 135398570,
-    "RN": [
-            "40732-48-7",
-            "7665-99-8"
-          ]
-}
- {
-   "CID": 2244,
+julia> dct["InformationList"]["Information"]
+2-element Vector{Any}:
+ Dict{String, Any}("CID" => 135398570, "RN" => ["40732-48-7", "7665-99-8"])
+ Dict{String, Any}("CID" => 2244,
     "RN": [
             "11126-35-5",
             "156865-15-5",
