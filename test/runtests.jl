@@ -37,7 +37,7 @@ const get_recordings = !all(isfile, allrecordings)
 if !isdir("http_record")
     mkdir("http_record")
 end
-BrokenRecord.configure!(; path="http_record")
+BrokenRecord.configure!(; path="http_record", ignore_headers=["User-Agent", "Host", "Accept-Encoding"])
 
 @testset "PubChemCrawler.jl" begin
     # Note that PubChem limits requests to no more than 5 per second, so we need to introduce delays in the tests.
