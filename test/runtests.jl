@@ -9,6 +9,10 @@ using Test
 ## NOTE: the interactions with PubChem are recorded using BrokenRecord and stored in the test/http_record
 ## directory. If you want to check that this still works with the "real" PubChem server, just delete
 ## that directory and re-run the tests.
+##
+## IMPORTANT: These tests require HTTP v1.x because BrokenRecord only works with HTTP v1.
+## The test environment will automatically use HTTP v1 even though the package supports HTTP v1 and v2.
+## The actual PubChemCrawler package code works correctly with both HTTP v1 and v2.
 
 const allrecordings = [joinpath("http_record", file) for file in [
     "estriol_cid.bson",

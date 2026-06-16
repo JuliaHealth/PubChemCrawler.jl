@@ -22,9 +22,14 @@ julia> cids = query_substructure_pug(smarts="[r13]Br")   # query brominated 13-a
 PUG searches can take a while to run (they poll for completion), but conversely they allow more complex, long-running searches
 to succeed. See also [`query_substructure`](@ref).
 """
-function query_substructure_pug(; kwargs...)
-    xdoc = create_substructure_query(; kwargs...)
-    cids = submit_substructure_query(xdoc; kwargs...)
+function query_substructure_pug(; cid=nothing, smiles=nothing, smarts=nothing,
+                                  stereo="ignore", isotopes::Bool=false, charges::Bool=false,
+                                  tautomers::Bool=false, rings::Bool=false, bonds::Bool=true,
+                                  chains::Bool=true, hydrogen::Bool=false, maxhits::Int=2_000_000,
+                                  poll_interval=10, kwargs...)
+    xdoc = create_substructure_query(; cid, smiles, smarts, stereo, isotopes, charges,
+                                       tautomers, rings, bonds, chains, hydrogen, maxhits)
+    cids = submit_substructure_query(xdoc; poll_interval, kwargs...)
     free(xdoc)
     return cids
 end
@@ -50,8 +55,7 @@ end
 
 function create_substructure_query(;cid=nothing, smiles=nothing, smarts=nothing,          # inputs
     stereo="ignore",isotopes::Bool=false,charges::Bool=false,tautomers::Bool=false,rings::Bool=false,bonds::Bool=true,chains::Bool=true,hydrogen::Bool=false,
-    maxhits::Int=2_000_000,
-    kwargs...)
+    maxhits::Int=2_000_000)
 
     query_data = if cid !== nothing
         (smiles === nothing && smarts === nothing) || throw(ArgumentError("only one of cid, smiles, or smarts can be specified"))
