@@ -1,23 +1,24 @@
 name = "PubChemCrawler"
 uuid = "30e472fa-2b12-4c0b-9705-07d174b7a4e1"
-authors = ["Tim Holy <tim.holy@gmail.com> and contributors"]
 version = "1.4.0"
+authors = ["Tim Holy <tim.holy@gmail.com> and contributors"]
 
 [deps]
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 LightXML = "9c8b4983-aa76-5018-a973-4c85ecc9e179"
 
 [compat]
-HTTP = "1"
+HTTP = "1, 2.4"
 LightXML = "0.8, 0.9"
 julia = "1.10"
 
 [extras]
+BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
 BrokenRecord = "bdd55f5b-6e67-4da1-a080-6086e55655a0"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["BrokenRecord", "CSV", "DataFrames", "JSON3", "Test"]
+test = ["BSON", "BrokenRecord", "CSV", "DataFrames", "JSON", "Test"]

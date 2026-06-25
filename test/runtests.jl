@@ -1,6 +1,6 @@
 using PubChemCrawler
 using CSV
-using JSON3
+using JSON
 using DataFrames
 using BrokenRecord: BrokenRecord, playback
 using HTTP    # needed to make BSON happy upon playback
@@ -9,6 +9,10 @@ using Test
 ## NOTE: the interactions with PubChem are recorded using BrokenRecord and stored in the test/http_record
 ## directory. If you want to check that this still works with the "real" PubChem server, just delete
 ## that directory and re-run the tests.
+##
+## IMPORTANT: These tests require HTTP v1.x because BrokenRecord only works with HTTP v1.
+## The test environment will automatically use HTTP v1 even though the package supports HTTP v1 and v2.
+## The actual PubChemCrawler package code works correctly with both HTTP v1 and v2.
 
 const allrecordings = [joinpath("http_record", file) for file in [
     "estriol_cid.bson",
@@ -33,7 +37,7 @@ const get_recordings = !all(isfile, allrecordings)
 if !isdir("http_record")
     mkdir("http_record")
 end
-BrokenRecord.configure!(; path="http_record")
+BrokenRecord.configure!(; path="http_record", ignore_headers=["User-Agent", "Host", "Accept-Encoding"])
 
 @testset "PubChemCrawler.jl" begin
     # Note that PubChem limits requests to no more than 5 per second, so we need to introduce delays in the tests.
@@ -86,8 +90,8 @@ BrokenRecord.configure!(; path="http_record")
     cids = [playback(() -> get_cid(name="cyclic guanosine monophosphate"), "cGMP_cid.bson")
             playback(() -> get_cid(name="aspirin"), "aspirin_cid_from_name.bson")]
     sleep(5.0 * get_recordings)
-    dct = JSON3.read(playback(() -> get_for_cids(cids; xrefs="RN,", output="JSON"), "CAS_as_json.bson"))
-    @test dct[:InformationList][:Information][1][:RN] ==  ["231-641-6", "40732-48-7", "7665-99-8"]
+    dct = JSON.parse(String(playback(() -> get_for_cids(cids; xrefs="RN,", output="JSON"), "CAS_as_json.bson")))
+    @test dct["InformationList"]["Information"][1]["RN"] ==  ["231-641-6", "40732-48-7", "7665-99-8"]
     sleep(5.0 * get_recordings)
     @test chomp(String(playback(() -> get_for_cids(cids[1]; xrefs="RN,", output="TXT"), "CAS_as_txt.bson"))) == "231-641-6\n40732-48-7\n7665-99-8"
 

@@ -1,10 +1,21 @@
 # The PUG XML interface is much more painful, but it can run longer queries
 
 """
-    cids = query_substructure_pug(;cid=nothing, smiles=nothing, smarts=nothing,        # specifier for the substructure to search for
-                                   maxhits=200_000, poll_interval=10)
+    cids = query_substructure_pug(; cid=nothing, smiles=nothing, smarts=nothing,
+                                    stereo="ignore", isotopes=false, charges=false,
+                                    tautomers=false, rings=false, bonds=true,
+                                    chains=true, hydrogen=false, maxhits=2_000_000,
+                                    poll_interval=10, request_kwargs=(;))
 
 Retrieve a list of compounds containing a substructure specified via its `cid`, the SMILES string, or a SMARTS string.
+
+# Arguments
+- `cid`, `smiles`, or `smarts`: Specify the substructure to search for (exactly one must be provided)
+- `stereo`: Stereochemistry handling - "ignore" (default), "exact", "relative", or "non-conflicting"
+- `isotopes`, `charges`, `tautomers`, `rings`, `bonds`, `chains`, `hydrogen`: Boolean flags for match constraints
+- `maxhits`: Maximum number of results to return (default: 2,000,000)
+- `poll_interval`: Seconds to wait between polling for results (default: 10)
+- `request_kwargs`: Named tuple of additional keyword arguments to pass to HTTP.request (e.g., `request_kwargs=(; connect_timeout=30)`)
 
 # Example
 
@@ -22,9 +33,9 @@ julia> cids = query_substructure_pug(smarts="[r13]Br")   # query brominated 13-a
 PUG searches can take a while to run (they poll for completion), but conversely they allow more complex, long-running searches
 to succeed. See also [`query_substructure`](@ref).
 """
-function query_substructure_pug(; kwargs...)
+function query_substructure_pug(; poll_interval=10, request_kwargs=(;), kwargs...)
     xdoc = create_substructure_query(; kwargs...)
-    cids = submit_substructure_query(xdoc; kwargs...)
+    cids = submit_substructure_query(xdoc; poll_interval, request_kwargs...)
     free(xdoc)
     return cids
 end
@@ -50,8 +61,7 @@ end
 
 function create_substructure_query(;cid=nothing, smiles=nothing, smarts=nothing,          # inputs
     stereo="ignore",isotopes::Bool=false,charges::Bool=false,tautomers::Bool=false,rings::Bool=false,bonds::Bool=true,chains::Bool=true,hydrogen::Bool=false,
-    maxhits::Int=2_000_000,
-    kwargs...)
+    maxhits::Int=2_000_000)
 
     query_data = if cid !== nothing
         (smiles === nothing && smarts === nothing) || throw(ArgumentError("only one of cid, smiles, or smarts can be specified"))
