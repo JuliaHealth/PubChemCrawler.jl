@@ -57,17 +57,27 @@ function nest2(parent, tag, mods...)
     return nodetag, children
 end
 
-
-
-function create_substructure_query(;cid=nothing, smiles=nothing, smarts=nothing,          # inputs
-    stereo="ignore",isotopes::Bool=false,charges::Bool=false,tautomers::Bool=false,rings::Bool=false,bonds::Bool=true,chains::Bool=true,hydrogen::Bool=false,
-    maxhits::Int=2_000_000)
-
+function create_substructure_query(;
+    cid=nothing,
+    smiles=nothing,
+    smarts=nothing,          # inputs
+    stereo="ignore",
+    isotopes::Bool=false,
+    charges::Bool=false,
+    tautomers::Bool=false,
+    rings::Bool=false,
+    bonds::Bool=true,
+    chains::Bool=true,
+    hydrogen::Bool=false,
+    maxhits::Int=2_000_000,
+)
     query_data = if cid !== nothing
-        (smiles === nothing && smarts === nothing) || throw(ArgumentError("only one of cid, smiles, or smarts can be specified"))
+        (smiles === nothing && smarts === nothing) ||
+            throw(ArgumentError("only one of cid, smiles, or smarts can be specified"))
         string(cid)
     elseif smiles !== nothing
-        smarts === nothing || throw(ArgumentError("only one of cid, smiles, or smarts can be specified"))
+        smarts === nothing ||
+            throw(ArgumentError("only one of cid, smiles, or smarts can be specified"))
         smiles
     elseif smarts !== nothing
         smarts
@@ -77,7 +87,11 @@ function create_substructure_query(;cid=nothing, smiles=nothing, smarts=nothing,
     stereoidx = 0
     if stereo != "ignore"
         stereoidx = findfirst(isequal(stereo), ["exact", "relative", "non-conflicting"])
-        stereoidx === nothing && throw(ArgumentError("""stereo must be one of "ignore", "exact", "relative", or "non-conflicting", got $stereo"""))
+        stereoidx === nothing && throw(
+            ArgumentError(
+                """stereo must be one of "ignore", "exact", "relative", or "non-conflicting", got $stereo""",
+            ),
+        )
     end
 
     xdoc = XMLDocument()
@@ -86,7 +100,9 @@ function create_substructure_query(;cid=nothing, smiles=nothing, smarts=nothing,
     input, inputquery = nest2(rootinput, "PCT-InputData", "query")
     query, querytype = nest2(inputquery, "PCT-Query", "type")
     querytype2, querytype2css = nest2(querytype, "PCT-QueryType", "css")
-    querycomp, fields = nest2(querytype2css, "PCT-QueryCompoundCS", "query", "type", "results")
+    querycomp, fields = nest2(
+        querytype2css, "PCT-QueryCompoundCS", "query", "type", "results"
+    )
     add_text(new_child(fields[1], "PCT-QueryCompoundCS_query_data"), query_data)  # under "query"
     subss = new_child(fields[2], "PCT-QueryCompoundCS_type_subss")                # under "type"
 
@@ -97,7 +113,15 @@ function create_substructure_query(;cid=nothing, smiles=nothing, smarts=nothing,
         set_attribute(cstereo, "value", stereo)
         add_text(cstereo, string(stereoidx))
     end
-    for (name, val) in (("isotopes", isotopes), ("charges", charges), ("tautomers", tautomers), ("rings", rings), ("bonds", bonds), ("chains", chains), ("hydrogen", hydrogen))
+    for (name, val) in (
+        ("isotopes", isotopes),
+        ("charges", charges),
+        ("tautomers", tautomers),
+        ("rings", rings),
+        ("bonds", bonds),
+        ("chains", chains),
+        ("hydrogen", hydrogen),
+    )
         child = new_child(substruct, ssstr*'_'*name)
         set_attribute(child, "value", repr(val))
     end
@@ -143,14 +167,18 @@ function get_status(top)
     return attribute(elstatus, "value")
 end
 function get_id(top)
-    return content(top["PCT-OutputData_output"][1]["PCT-OutputData_output_waiting"][1]["PCT-Waiting"][1]["PCT-Waiting_reqid"][1])
+    return content(
+        top["PCT-OutputData_output"][1]["PCT-OutputData_output_waiting"][1]["PCT-Waiting"][1]["PCT-Waiting_reqid"][1],
+    )
 end
 function get_entrez(top)
     return top["PCT-OutputData_output"][1]["PCT-OutputData_output_entrez"][1]["PCT-Entrez"][1]
 end
 
 function submit_substructure_query(xdoc; poll_interval=10, kwargs...)
-    r = HTTP.request("POST", "https://pubchem.ncbi.nlm.nih.gov/pug/pug.cgi", [], string(xdoc); kwargs...)
+    r = HTTP.request(
+        "POST", "https://pubchem.ncbi.nlm.nih.gov/pug/pug.cgi", [], string(xdoc); kwargs...
+    )
     xresp = parse_string(String(r.body))
     top = get_top(xresp)
     status = get_status(top)
@@ -162,7 +190,13 @@ function submit_substructure_query(xdoc; poll_interval=10, kwargs...)
             free(xresp)
             sleep(poll_interval)
             # poll for completion
-            r = HTTP.request("POST", "https://pubchem.ncbi.nlm.nih.gov/pug/pug.cgi", [], string(pollreq); kwargs...)
+            r = HTTP.request(
+                "POST",
+                "https://pubchem.ncbi.nlm.nih.gov/pug/pug.cgi",
+                [],
+                string(pollreq);
+                kwargs...,
+            )
             xresp = parse_string(String(r.body))
             top = get_top(xresp)
             status = get_status(top)

@@ -30,15 +30,14 @@ julia> get_cids(cas_number="50-78-2")
 
 ```
 """
-function get_cids(; name=nothing, smiles=nothing, cas_number=nothing,
-                   kwargs...)
+function get_cids(; name=nothing, smiles=nothing, cas_number=nothing, kwargs...)
     input = "compound/"
     name !== nothing && (input *= "name/$(HTTP.escapeuri(name))/")
     smiles !== nothing && (input *= "smiles/$((smiles))/")
     cas_number !== nothing && (input *= "xref/RN/$(cas_number)/")
     url = prolog * input * "cids/TXT"
     r = HTTP.request("GET", url; kwargs...)
-    return parse.(Int,split(chomp(String(r.body)), '\n'))
+    return parse.(Int, split(chomp(String(r.body)), '\n'))
 end
 
 """
@@ -56,7 +55,6 @@ julia> cid = get_cid(smiles="C([C@@H]1[C@H]([C@@H]([C@H](C(O1)O)O)O)O)O")
 ```
 """
 get_cid = only ∘ get_cids
-
 
 """
     msg = query_substructure(;cid=nothing, smiles=nothing, smarts=nothing,           # specifier for the substructure to search for
@@ -96,16 +94,22 @@ will query for derivatives of [estriol](https://en.wikipedia.org/wiki/Estriol).
 !!! info
     For complex queries that risk timing out, consider [`query_substructure_pug`](@ref) in combination with [`get_for_cids`](@ref).
 """
-function query_substructure(;cid=nothing, smiles=nothing, smarts=nothing,          # inputs
-                             properties="MolecularFormula,MolecularWeight,XLogP,", # http://pubchemdocs.ncbi.nlm.nih.gov/pug-rest, "Compound Property Tables"
-                             output="CSV",
-                             kwargs...)
+function query_substructure(;
+    cid=nothing,
+    smiles=nothing,
+    smarts=nothing,          # inputs
+    properties="MolecularFormula,MolecularWeight,XLogP,", # http://pubchemdocs.ncbi.nlm.nih.gov/pug-rest, "Compound Property Tables"
+    output="CSV",
+    kwargs...,
+)
     input = "compound/fastsubstructure/"
     if cid !== nothing
-        (smiles === nothing && smarts === nothing) || throw(ArgumentError("only one of cid, smiles, or smarts can be specified"))
+        (smiles === nothing && smarts === nothing) ||
+            throw(ArgumentError("only one of cid, smiles, or smarts can be specified"))
         input *= "cid/$cid/"
     elseif smiles !== nothing
-        smarts === nothing || throw(ArgumentError("only one of cid, smiles, or smarts can be specified"))
+        smarts === nothing ||
+            throw(ArgumentError("only one of cid, smiles, or smarts can be specified"))
         input *= "smiles/$smiles/"
     elseif smarts !== nothing
         input *= "smarts/$smarts/"
@@ -177,13 +181,15 @@ julia> dct["InformationList"]["Information"]
 }
 ```
 """
-function get_for_cids(cids;
-                      properties=nothing,
-                      xrefs=nothing,
-                      cids_type=nothing,
-                      record_type=nothing,
-                      output="CSV",
-                      kwargs...)
+function get_for_cids(
+    cids;
+    properties=nothing,
+    xrefs=nothing,
+    cids_type=nothing,
+    record_type=nothing,
+    output="CSV",
+    kwargs...,
+)
     url = prolog * "compound/cid/"
     if xrefs === nothing
         if properties !== nothing
@@ -192,7 +198,8 @@ function get_for_cids(cids;
             url *= "cids/"
         end
     else
-        properties === nothing || error("cannot specify both xref and properties in a single query")
+        properties === nothing ||
+            error("cannot specify both xref and properties in a single query")
         url *= canonicalize_properties("xrefs/" * xrefs)
     end
     url = joinpath(url, output)
@@ -202,7 +209,13 @@ function get_for_cids(cids;
     if record_type !== nothing
         url *= "?record_type=" * record_type
     end
-    r = HTTP.request("POST", url, ["Content-Type"=>"application/x-www-form-urlencoded"], "cid="*join(string.(cids), ","); kwargs...)
+    r = HTTP.request(
+        "POST",
+        url,
+        ["Content-Type"=>"application/x-www-form-urlencoded"],
+        "cid="*join(string.(cids), ",");
+        kwargs...,
+    )
     return r.body
 end
 
@@ -244,8 +257,15 @@ julia> pug(:compound, :cid, 708, :txt, return_text = true, status_exception = fa
 "Status: 400\nCode: PUGREST.BadRequest\nMessage: Invalid output format\nDetail: Full-record output format must be one of ASNT/B, XML, JSON(P), SDF, or PNG"
 ```
 """
-function pug(args...; silent = true, escape_args = true, return_text = false, status_exception = true, kwargs...)
-    args =  replace.(string.(args), r"/$" => "", r"^/" => "")
+function pug(
+    args...;
+    silent=true,
+    escape_args=true,
+    return_text=false,
+    status_exception=true,
+    kwargs...,
+)
+    args = replace.(string.(args), r"/$" => "", r"^/" => "")
     escape_args && (args = HTTP.escapeuri.(args))
     pug_string = join(string.(args), "/")
     url = prolog * pug_string
@@ -262,15 +282,18 @@ end
 
 Return a list of substance or compound synonyms.
 """
-function get_synonyms(; name=nothing, cid=nothing, smiles=nothing,
-         kwargs...)::Vector{String}
+function get_synonyms(;
+    name=nothing, cid=nothing, smiles=nothing, kwargs...
+)::Vector{String}
     # inputs
     input = "compound/"
     if name !== nothing
-        (smiles === nothing && cid === nothing) || throw(ArgumentError("only one of name, cid, or smiles can be specified"))
+        (smiles === nothing && cid === nothing) ||
+            throw(ArgumentError("only one of name, cid, or smiles can be specified"))
         input *= "name/$(HTTP.escapeuri(name))/"
     elseif cid !== nothing
-        (smiles === nothing) || throw(ArgumentError("only one of name, cid, or smiles can be specified"))
+        (smiles === nothing) ||
+            throw(ArgumentError("only one of name, cid, or smiles can be specified"))
         input *= "cid/$cid/"
     elseif smiles !== nothing
         input *= "smiles/$smiles/"

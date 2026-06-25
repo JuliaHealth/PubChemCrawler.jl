@@ -6,15 +6,9 @@ makedocs(;
     authors="Tim Holy <tim.holy@gmail.com> and contributors",
     sitename="PubChemCrawler.jl",
     format=Documenter.HTML(;
-        canonical="https://JuliaHealth.github.io/PubChemCrawler.jl",
-        assets=String[],
+        canonical="https://JuliaHealth.github.io/PubChemCrawler.jl", assets=String[]
     ),
-    pages=[
-        "Home" => "index.md",
-    ],
+    pages=["Home" => "index.md"],
 )
 
-deploydocs(;
-    repo="github.com/JuliaHealth/PubChemCrawler.jl",
-    push_preview=true,
-)
+deploydocs(; repo="github.com/JuliaHealth/PubChemCrawler.jl", push_preview=true)
