@@ -1,0 +1,7 @@
+# Bulk reformatting commits to skip in `git blame`.
+# Enable locally with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# GitHub honors this file automatically.
+
+# Add .JuliaFormatter.toml and apply Blue-style formatting
+d45d90915701b93be73e0d6862ebb8ba4414e158

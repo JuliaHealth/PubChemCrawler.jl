@@ -58,13 +58,13 @@ function parse_formula(str::AbstractString)
         while idx <= l && isnumeric(str[idx])
             idx = nextind(str, idx)
         end
-        push!(prs, atom => idx == idxn ? 1 : parse(Int, str[idxn:idx-1]))
+        push!(prs, atom => idx == idxn ? 1 : parse(Int, str[idxn:(idx - 1)]))
     end
     return prs
 end
 
 function canonicalize_properties(props)
-    endswith(props, ',') && (props = props[1:end-1])
+    endswith(props, ',') && (props = props[1:(end - 1)])
     endswith(props, '/') || (props *= '/')
     return props
 end
